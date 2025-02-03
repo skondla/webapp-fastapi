@@ -1,0 +1,161 @@
+# This workflow will build and push an application to a Azure Kubernetes Service (AKS) cluster when you push your code
+#
+# This workflow assumes you have already created the target AKS cluster and have created an Azure Container Registry (ACR)
+# The ACR should be attached to the AKS cluster
+# For instructions see:
+#   - https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough-portal
+#   - https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-portal
+#   - https://learn.microsoft.com/en-us/azure/aks/cluster-container-registry-integration?tabs=azure-cli#configure-acr-integration-for-existing-aks-clusters
+#   - https://github.com/Azure/aks-create-action
+#
+# To configure this workflow:
+#
+# 1. Set the following secrets in your repository (instructions for getting these can be found at https://docs.microsoft.com/en-us/azure/developer/github/connect-from-azure?tabs=azure-cli%2Clinux):
+#    - AZURE_CLIENT_ID
+#    - AZURE_TENANT_ID
+#    - AZURE_SUBSCRIPTION_ID
+#
+# 2. Set the following environment variables (or replace the values below):
+#    - AZURE_CONTAINER_REGISTRY (name of your container registry / ACR)
+#    - AZ_RESOURCE_GROUP (where your cluster is deployed)
+#    - AZ_AKS_CLUSTER (name of your AKS cluster)
+#    - CONTAINER_NAME (name of the container image you would like to push up to your ACR)
+#    - IMAGE_PULL_SECRET_NAME (name of the ImagePullSecret that will be created to pull your ACR image)
+#    - APP_MANIFEST_DIR (path to the manifest yaml for your deployment)
+#
+# For more information on GitHub Actions for Azure, refer to https://github.com/Azure/Actions
+# For more samples to get started with GitHub Action workflows to deploy to Azure, refer to https://github.com/Azure/actions-workflow-samples
+# For more options with the actions used below please refer to https://github.com/Azure/login
+
+name: Deploy webapp to AKS Cluster
+
+on:
+  push:
+    branches: [ "master", "testing_azure" ]
+  workflow_dispatch:
+
+env:
+  AZURE_CONTAINER_REGISTRY: "flaskwebapps"
+  CONTAINER_NAME: "webapp1"
+  AZ_RESOURCE_GROUP: "webapps"
+  AZ_AKS_CLUSTER: "webapps"
+  APP_MANIFEST_DIR: azure/aks/deploy/manifest/webapp1
+  AZ_REGION: eastus
+  APP_NAME: webapp1
+  AKS_APP_NAME: "webapp1"
+  AKS_SERVICE: "webapp1"
+  AKS_SERVICE_ACCOUNT: "webapp1-sa"
+  AKS_NAMESPACE: "webapp"
+  APP_DIR: app1
+  GITHUB_SHA: ${{ github.sha }}
+  AKS_APP_USER_PORT: 25443
+
+jobs:
+  Build:
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      # Checks out the repository this file is in
+      - uses: actions/checkout@v3
+
+      # Logs in with your Azure credentials
+      - name: Azure login
+        uses: azure/login@v1.4.6
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - run: |
+          az webapp list --query "[?state=='Running']"
+      # Builds and pushes an image up to your Azure Container Registry
+      - uses: azure/docker-login@v1
+        with:
+          login-server: ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io
+          username: ${{ secrets.ACR_USER }}
+          password: ${{ secrets.ACR_PASSWORD }}
+      - name: Build and push image to ACR
+        working-directory: ${{env.APP_DIR}}
+        run: |
+          az acr build --image ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }}:${{ env.GITHUB_SHA }} \
+           --registry ${{ env.AZURE_CONTAINER_REGISTRY }} -g ${{ env.AZ_RESOURCE_GROUP }} .
+
+  Scan:
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    needs: [Build]
+    steps:
+      - uses: azure/container-scan@v0
+        with:
+          image-name: ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }}:${{ env.GITHUB_SHA }} 
+          username: ${{ secrets.ACR_USER }}
+          password: ${{ secrets.ACR_PASSWORD }}        
+  Deploy:
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    needs: [Scan]
+    steps:
+      # Checks out the repository this file is in
+      - uses: actions/checkout@v3
+
+      # Logs in with your Azure credentials
+      - name: Azure login
+        uses: azure/login@v1.4.6
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+
+      # Use kubelogin to configure your kubeconfig for Azure auth
+      - name: Set up kubelogin for non-interactive login
+        uses: azure/use-kubelogin@v1
+        with:
+          kubelogin-version: 'v0.0.25'
+
+      # Retrieves your Azure Kubernetes Service cluster's kubeconfig file
+      - name: Get K8s context
+        uses: azure/aks-set-context@v3
+        with:
+          resource-group: ${{ env.AZ_RESOURCE_GROUP }}
+          cluster-name: ${{ env.AZ_AKS_CLUSTER }}
+          admin: 'false'
+          use-kubelogin: 'true'
+
+      # Deploys application based on given manifest file
+      - name: Deploys application
+        working-directory: ${{env.APP_MANIFEST_DIR}}
+        env: 
+          IMAGE_NAME: ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }}:${{ env.GITHUB_SHA }}
+        run: |-
+          envsubst < webapp1.yaml | kubectl apply -f -
+          envsubst < Service.yaml | kubectl apply -f -
+          envsubst < Deployment.yaml | kubectl apply -f -
+          kubectl get pods -o wide
+          kubectl get svc -o wide 
+          sleep 60
+
+        #Check application is running, test REST endpoints
+      - name: Verify Coontainer Application
+        run: |-
+          kubectl rollout status deploy ${{env.EKS_APP_NAME}} -n ${{env.EKS_NAMESPACE}}
+          curl -Lk https://`kubectl get svc -n ${{env.AKS_NAMESPACE}} | grep ${{env.AKS_SERVICE}} | awk '{print $4}'`:${{env.AKS_APP_USER_PORT}}/backup/create
+          curl -Lk https://`kubectl get svc -n ${{env.AKS_NAMESPACE}} | grep ${{env.AKS_SERVICE}} | awk '{print $4}'`:${{env.AKS_APP_USER_PORT}}/backup/delete
+          curl -Lk https://`kubectl get svc -n ${{env.AKS_NAMESPACE}} | grep ${{env.AKS_SERVICE}} | awk '{print $4}'`:${{env.AKS_APP_USER_PORT}}/backup/status
+      
+      #Notify Slack
+      - name: Notify Slack
+        uses: ravsamhq/notify-slack-action@v2
+        if: always()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_CI_HOOK }}
+        with:
+          status: ${{ job.status }}
+          notification_title: "{workflow}:{job} has {status_message}"
+          message_format: "{emoji} *{workflow}:{job}* {status_message} in <{repo_url}|{repo}>"
+          footer: "Logs <{run_url}|{job}>"
+          notify_when: "failure,success" 

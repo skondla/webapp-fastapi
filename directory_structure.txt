@@ -1,0 +1,209 @@
+.
+├── LICENSE
+├── README.md
+├── actions
+│   ├── Deploy-AKS.yml
+│   ├── Deploy-AWS-ECS-EXAMPLE.yml
+│   ├── Deploy-AWS-ECS.yml
+│   ├── Deploy-AWS.yml
+│   ├── Deploy-GKE.yml
+│   ├── Sample-Deploy-ECS.yml
+│   ├── azure-kubernetes-service.yml
+│   ├── codeQL.yml
+│   ├── deployToAksCluster.yml
+│   ├── deployment.yaml
+│   ├── deploymentToGKEcluster.yaml
+│   ├── pyre.yml
+│   ├── run_npm_test.yml
+│   └── service.yml
+├── app1
+│   ├── Dockerfile
+│   ├── Dockerfile.alpine
+│   ├── Dockerfile.lite
+│   ├── Dockerfile.regular
+│   ├── aws-task-definition.json
+│   ├── config
+│   │   └── appConfig.yaml
+│   ├── dbWebAPI.py
+│   ├── dbWebAPI.sh
+│   ├── deployment.yaml
+│   ├── lib
+│   │   └── rdsAdmin.py
+│   ├── requirements.txt
+│   ├── service.yaml
+│   └── templates
+│       ├── check-backup.html
+│       ├── create-backup.html
+│       ├── db-backup-tool.html
+│       ├── delete-backup.html
+│       └── my-form.html
+├── aws
+│   ├── PermissionBoundary.yaml
+│   ├── createPermBoundary.sh
+│   ├── ecr
+│   │   └── deploy
+│   │       └── bash
+│   │           ├── destroy-ecr.sh
+│   │           ├── eks-log-collector.sh
+│   │           └── setup-ecr.sh
+│   ├── ecs
+│   │   └── deploy
+│   │       ├── bash
+│   │       │   ├── create-ecs-cluster.sh
+│   │       │   ├── create-iam-policy.json
+│   │       │   ├── destroy-ecs-cluster.sh
+│   │       │   ├── ecs-service-policy.json
+│   │       │   ├── ecs-tasks-trust-policy.json
+│   │       │   ├── ecs.yaml
+│   │       │   ├── ecsFullAccess.json
+│   │       │   ├── setup-ecs.sh
+│   │       │   └── task_definition.json
+│   │       └── terraform
+│   │           ├── ecs_service.tf
+│   │           ├── variables.tf
+│   │           └── vpc.tf
+│   ├── eks
+│   │   └── deploy
+│   │       ├── bash
+│   │       │   ├── cr-eks-cluster.output
+│   │       │   ├── cr_eks.yaml
+│   │       │   ├── create-eks-cluster.sh
+│   │       │   ├── create_eks_from_cf_template.sh
+│   │       │   ├── destroy-eks.sh
+│   │       │   ├── eks-cluster-role-trust-policy.json
+│   │       │   ├── eks-vpc-private-subnets.yaml
+│   │       │   ├── eks_admin.json
+│   │       │   ├── eks_cluster_list_policy.json
+│   │       │   ├── eks_cluster_role_policy.json
+│   │       │   ├── eksctl.help
+│   │       │   ├── node-role-trust-relationship.json
+│   │       │   ├── setup-eks.2.sh
+│   │       │   ├── setup-eks.sh
+│   │       │   └── webapp_eks_env.sh
+│   │       ├── integration
+│   │       │   ├── celium_ingress
+│   │       │   └── ngnix_ingress
+│   │       └── manifest
+│   │           ├── postgres
+│   │           │   └── sample1
+│   │           └── webapp1
+│   │               ├── Deployment.yaml
+│   │               ├── Service.yaml
+│   │               ├── deployment.yml
+│   │               ├── service.yml
+│   │               └── webapp1.yaml
+│   └── monitoring
+│       └── grafana
+│           └── infracost-base.json
+├── azure
+│   ├── acr
+│   │   └── deploy
+│   │       └── bash
+│   │           └── setup_acr.sh
+│   └── aks
+│       └── deploy
+│           ├── bash
+│           │   ├── destroy_all.sh
+│           │   ├── nginx-ingress.sh
+│           │   └── setup_aks.sh
+│           └── manifest
+│               ├── deployment.yml
+│               ├── postgres
+│               │   ├── sample1
+│               │   │   ├── Makefile
+│               │   │   ├── deployment_pg.yaml
+│               │   │   ├── pv_pg.yaml
+│               │   │   ├── pvc_pg.yaml
+│               │   │   ├── secret_pg.yaml
+│               │   │   └── service_pg.yaml
+│               │   └── sample2
+│               │       ├── Makefile
+│               │       ├── calico.yaml
+│               │       ├── canal.yaml
+│               │       ├── csi_pvc_pg.yaml
+│               │       ├── csi_storage_class_pg.yaml
+│               │       ├── deployPG.sh
+│               │       ├── deployment_pg.yaml
+│               │       ├── destroyPG.sh
+│               │       ├── install_calico_cni.yaml
+│               │       ├── pg_networkpolicy.yaml
+│               │       ├── secret_pg.yaml
+│               │       └── service_pg.yaml
+│               ├── service.yml
+│               └── webapp1
+│                   ├── Deployment.yaml
+│                   ├── Service.yaml
+│                   └── webapp1.yaml
+├── directory_structure.txt
+├── from_dockerhub
+│   ├── deployment.yaml
+│   └── service.yaml
+├── gcp
+│   └── gke
+│       ├── checkk8sAPIVersions.log
+│       ├── checkk8sAPIVersions.sh
+│       ├── deploy
+│       │   ├── destroy-gke.sh
+│       │   ├── genRandom.sh
+│       │   ├── issue
+│       │   │   └── image_build.err
+│       │   ├── manifests
+│       │   │   ├── deployment.yaml
+│       │   │   ├── service.yaml
+│       │   │   └── webapp
+│       │   │       ├── Deployment.yaml
+│       │   │       ├── Dockerfile
+│       │   │       ├── Service.yaml
+│       │   │       ├── spinnaker.yaml
+│       │   │       ├── webapp.yaml
+│       │   │       ├── webapp1.yaml
+│       │   │       └── websa.yaml
+│       │   ├── monitoring
+│       │   │   └── prometheus
+│       │   │       ├── grafana.yaml
+│       │   │       ├── k8s-api-versions.list
+│       │   │       ├── namespace.yaml
+│       │   │       ├── node-exporter.yaml
+│       │   │       ├── prometheus-config.yaml
+│       │   │       ├── prometheus-deploy.yaml
+│       │   │       ├── prometheus-rbac.yaml
+│       │   │       ├── prometheus-svc.yaml
+│       │   │       ├── setup_prometheus.sh
+│       │   │       ├── state-metrics-deploy.yaml
+│       │   │       └── state-metrics-rbac.yaml
+│       │   ├── serviceMesh
+│       │   │   ├── linkerd-install-gke.yaml
+│       │   │   ├── setup_anthos.sh
+│       │   │   ├── setup_istio.sh
+│       │   │   └── setup_linkerd.sh
+│       │   ├── setup-gke-anthos.sh
+│       │   └── setup-gke.sh
+│       ├── enableSelectedServiceAPIs.sh
+│       ├── k8s-api-versions.log
+│       ├── k8s-api-versions.sh
+│       ├── undelete_sa.sh
+│       └── upgrade
+│           ├── upgradeCluster.sh
+│           └── upgradeNodePool.sh
+├── images
+│   ├── DevSecOps_with_GutHub_Actions.png
+│   ├── DevSecOps_with_GutHub_Actions.svg
+│   ├── DevSecOps_with_GutHub_Actions_AKS.png
+│   ├── dbAPIapp.png
+│   └── webApp.backups.png
+├── lite
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   └── requirements.txt.lite
+├── local
+│   └── deploy
+│       └── webapp
+│           └── c79c42b29907.json
+├── manifests
+│   ├── deployment.yml
+│   └── service.yml
+└── workflows
+    ├── Deploy-AWS.yml
+    └── Deploy-GKE.yml
+
+56 directories, 151 files

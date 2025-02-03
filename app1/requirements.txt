@@ -1,0 +1,12 @@
+fastapi
+boto3
+botocore
+boto
+yaml-1.3
+ssl
+uvicorn
+fastapi.responses
+fastapi.templating
+jinja2
+python-multipart
+

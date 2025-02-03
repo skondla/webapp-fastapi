@@ -1,0 +1,26 @@
+# This file configures the webapp1 app which serves public web traffic on port 80
+#export IMAGE_NAME=`cat ~/Downloads/ecr_image.txt | grep imageName|awk '{print $2}'`
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${EKS_APP_NAME}
+  namespace: ${EKS_NAMESPACE}
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: ${EKS_APP_NAME}
+  template:
+    metadata:
+      labels:
+        app: ${EKS_APP_NAME}
+    spec:
+      serviceAccountName: ${EKS_SERVICE_ACCOUNT}
+      containers:
+      - name: ${EKS_APP_NAME}
+        image: ${IMAGE_NAME}
+        ports:
+        - containerPort: 25443
+        env:
+          - name: PORT
+            value: "25443"
