@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 #Author: skondla@me.com
-#purpose: Build a simple python WebApp & REST API to call database service requests
+#purpose: Build a simple python WebApp & REST API with FastAPI to call database service requests
 #coding=utf-8
-
+#Run: uvicorn dbWebAPI:app --reload --host 0.0.0.0 --port 8000 --reload --ssl-keyfile=key.pem --ssl-certfile=cert.pem
 from fastapi import FastAPI, Form, Request, HTTPException, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates

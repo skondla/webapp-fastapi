@@ -11,3 +11,4 @@
 .idea/workspace.xml
 .o
 fastapi-venv
+__pycache__
