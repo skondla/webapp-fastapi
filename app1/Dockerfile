@@ -1,5 +1,6 @@
-#FROM python:3.9.13
-FROM python:3.11-slim AS builder
+FROM python:3.13.1
+#FROM python:3.11-slim AS builder
+#FROM python:3.13.0a4-slim AS builder
 LABEL maintainer="Sam Kondla, skondla@me.com"
 #RUN apt-get -y install python3-pip
 RUN mkdir -p /app/certs
@@ -19,6 +20,9 @@ RUN apt-get update && \
 RUN apt-get install -y libzmq3-dev python3-pip
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN pip3 install --upgrade pip
+RUN pip3 install --trusted-host pypi.python.org autopep8
+RUN pip install certifi
+RUN pip install Scrapy
 RUN pip3 install -r requirements.txt
 RUN cp *.pem /app/certs/
 #RUN cp lib/rdsAdmin.py /usr/lib/python3.4
