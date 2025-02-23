@@ -12,10 +12,6 @@ import yaml
 import ssl
 import uvicorn
 
-# Define constants
-SNAPSHOT = "snapshot"
-CLUSTER = "cluster"
-
 # Initialize FastAPI app
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -30,15 +26,12 @@ async def backup_create(request: Request):
 
 @app.post("/backup/create")
 async def create_backup(endpoint: str = Form(...)):
-    try:
-        db_instance = endpoint.strip().split('.')[0]
-        today = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-        snapshot_name = f"{db_instance}-snapshot-{today}"
-        await create_snapshot(snapshot_name, db_instance, SNAPSHOT, endpoint)
-        snap_status = await snapshot_status(snapshot_name, endpoint)
-        return {"snapshot_name": snapshot_name, "status": snap_status}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    db_instance = endpoint.strip().split('.')[0]
+    today = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    snapshot_name = f"{db_instance}-snapshot-{today}"
+    request_db_snapshot = create_snapshot(snapshot_name, db_instance, "snapshot", endpoint)
+    snap_status = snapshot_status(snapshot_name, endpoint)
+    return {"snapshot_name": snapshot_name, "status": snap_status}
 
 @app.get("/backup/status", response_class=HTMLResponse)
 async def backup_check(request: Request):
@@ -46,11 +39,8 @@ async def backup_check(request: Request):
 
 @app.post("/backup/status")
 async def backup_status(snapshotname: str = Form(...), endpoint: str = Form(...)):
-    try:
-        snap_status = await snapshot_status(snapshotname.strip(), endpoint.strip())
-        return {"snapshot_status": snap_status}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    snap_status = snapshot_status(snapshotname.strip(), endpoint.strip())
+    return {"snapshot_status": snap_status}
 
 @app.get("/backup/delete", response_class=HTMLResponse)
 async def backup_delete(request: Request):
@@ -58,25 +48,22 @@ async def backup_delete(request: Request):
 
 @app.post("/backup/delete")
 async def delete_post(snapshotname: str = Form(...), endpoint: str = Form(...)):
-    try:
-        await delete_snapshot(snapshotname.strip(), endpoint.strip())
-        return {"message": f"Snapshot {snapshotname} deleting..."}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    delete_snapshot(snapshotname.strip(), endpoint.strip())
+    return {"message": f"Snapshot {snapshotname} deleting..."}
 
 @app.get("/data")
 async def names():
     return JSONResponse(content={"names": ["Sudheer", "Kondla", "Neil", "Nikhil"]})
 
 # Utility functions
-async def snapshot_status(snapshot_name: str, db_url: str):
-    return await (RDSDescribe().db_cluster_snapshot_status(snapshot_name) if CLUSTER in db_url else RDSDescribe().db_snapshot_status(snapshot_name))
+def snapshot_status(snapshot_name: str, db_url: str):
+    return RDSDescribe().db_cluster_snapshot_status(snapshot_name) if 'cluster' in db_url else RDSDescribe().db_snapshot_status(snapshot_name)
 
-async def create_snapshot(snapshot_name: str, instance_name: str, tag_name: str, db_url: str):
-    return await (RDSCreate().rds_create_db_cluster_snapshot(snapshot_name, instance_name, tag_name) if CLUSTER in db_url else RDSCreate().rds_create_db_snapshot(snapshot_name, instance_name, tag_name))
+def create_snapshot(snapshot_name: str, instance_name: str, tag_name: str, db_url: str):
+    return RDSCreate().rds_create_db_cluster_snapshot(snapshot_name, instance_name, tag_name) if 'cluster' in db_url else RDSCreate().rds_create_db_snapshot(snapshot_name, instance_name, tag_name)
 
-async def delete_snapshot(snapshot_name: str, db_url: str):
-    return await (RDSDelete().rds_delete_db_cluster_snapshot(snapshot_name) if CLUSTER in db_url else RDSDelete().delete_db_snapshot(snapshot_name))
+def delete_snapshot(snapshot_name: str, db_url: str):
+    return RDSDelete().rds_delete_db_cluster_snapshot(snapshot_name) if 'cluster' in db_url else RDSDelete().delete_db_snapshot(snapshot_name)
 
 def app_config():
     with open("appConfig.yaml", "r") as f:
