@@ -23,6 +23,10 @@ CLUSTER = "cluster"
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
+@app.get("/", response_class=HTMLResponse)
+async def my_form(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
 @app.get("/backup", response_class=HTMLResponse)
 async def my_form(request: Request):
     return templates.TemplateResponse("db-backup-tool.html", {"request": request})
