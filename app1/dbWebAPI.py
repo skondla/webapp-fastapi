@@ -3,6 +3,8 @@
 #purpose: Build a simple python WebApp & REST API with FastAPI to call database service requests
 #coding=utf-8
 #Run: uvicorn dbWebAPI:app --reload --host 0.0.0.0 --port 8000 --reload --ssl-keyfile=cert/key.pem --ssl-certfile=cert/certificate.pem
+#Run: uvicorn dbWebAPI:app --reload --host localhost --port 25443 --reload --ssl-keyfile=cert/key.pem --ssl-certfile=cert/certificate.pem
+
 from fastapi import FastAPI, Form, Request, HTTPException, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
 # from fastapi.templating import Jinja2Templates
